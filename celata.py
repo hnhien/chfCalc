@@ -70,7 +70,7 @@ def Tong(P=None, G=None, T=None, dTsub=None, D=None, modified=None):
 """ Westinghouse
 
 """
-def W3(P=None, T=None, dTsub=None, G=None, D=None, Pi=None, Ti=None):
+def W3(P=None, T=None, dTsub=None, G=None, D=None, Pi=None, Ti=None, LDh = None):
     # Fluid properties
     sat_liq = IAPWS97(P=P, x=0)
     sat_stm = IAPWS97(P=P, x=1)
