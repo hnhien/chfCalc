@@ -72,3 +72,74 @@ def W3(P=None, T=None, dTsub=None, G=None, D=None, Pi=None, Ti=None, xe=None, LD
     e = 0.8258 + 3.413e-4 * (sat_liq.h - inlet_liq.h)
     res = a*b*c*d*e / 1e3
     return res
+
+
+""" Weisman and Pei model
+    Dh : Hydrodynamic diameter
+    Ph : Heated perimeter
+    Ac : Cross-section area
+"""
+def WeiPei(P=None, T=None, dTsub=None, G=None, L=None, Dh=None, Ph=None, Ac=None):
+    # Fluid properties
+    sliq = IAPWS97(P=P, x=0)
+    sstm = IAPWS97(P=P, x=1)
+    if not T:
+        T = sliq.T - dTsub
+    if not dTsub:
+        dTsub = sliq.T - T
+    hfg = sstm.h - sliq.h  #kJ/kg
+    liq = IAPWS97(P=P, T=T)
+    # Calculate single phase heat transfer
+    Prf = liq.Prandt
+    Ref = G * Dh / liq.mu
+    H1p = 0.023 * Ref**0.8 * Prf**0.4 * liq.k / Dh
+    # Calculate yb+
+    ybp = 0.1 * (liq.sigma * Dh * liq.rho)**0.5 / liq.mu
+    # Calcualte friction factor
+    rn = 1.0e-4
+    ffric = 0.0055 * (1 + (2.0e4 * rn + 1.0e6/Ref)**(1./3.))
+    # Calculate multiplier of hf - h1d
+    mult = liq.c0 * 1.0e3 / H1p
+    tmp = G * (ffric / 8.)**0.5
+    if ybp > 0 and ybp <= 5.0:
+        mult = mult - Prf * ybp / tmp
+    elif ybp <= 30.0:
+        tmp1 = Prf + np.log(1.0 + Prf(ybp/5.0 - 1.0))
+        mult = mult - 5.0 * tmp1 / tmp
+    else:
+        tmp1 = Prf + np.log(1.0 + 5.0*Prf) + 0.5 *np.log(ybp / 30.0)
+        mult = mult - 5.0 * tmp1 / tmp
+    # Iteration
+    qchf, err = 1.0e5, 9.9e9
+    H0 = 0.075 #[(s.C)^-1]
+    qc = 0.0
+    while err > 1.0:
+        hf_h1d = mult * qchf
+        # Iteration to calculate xavg and hl
+        xavg, err1 = 0, 9.9
+        while err1 > 0.01:
+            h1 = (liq.h - xavg * sstm.h) / (1.0 - xavg) * 1.0e3
+            liq1 = IAPWS97(P=P, h=h1/1.0e3)
+            # Calcualte epsilon = pumping heat flux / evaporative heat flux
+            eps = liq1.rho * (sliq.h - h1) / sstm.rho / hfg
+            #
+            rho_avg = sstm.rho / (sstm.rho / liq1.rho * (1.0 - xavg) + xavg)
+            alpha = xavg * rho_avg / sstm.rho
+            #
+            qb = qchf * (h1 -sliq.h) / hf_h1d * 1.0e3
+            if h1 > sliq.h - hf_h1d:
+                qc = H0 * hfg / (1.0 / sstm.rho - 1.0 / sliq.rho) * Ac / Ph *alpha * (sstm.T - liq1.T)
+            else:
+                qc = 0.0
+            #
+            xavg_new = (qb / (1.0 + eps) - qc) * Ph * L / G / Ac / hfg / 1.0e3
+            err = abs(xavg_new - xavg)
+        # Calculate ib and psi
+        mu_avg = 0
+
+
+
+
+            
+
+
