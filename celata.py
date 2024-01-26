@@ -62,6 +62,8 @@ for i in df.index:
     # calcualte chf
     df["qchf_Tong"][i] = Tong(P=P, G=G, T=T, D=D, modified="celata")
     df["qchf_WH"][i] = W3(P=P, T=T, dTsub=dTsub,G=G, D=D, Pi=Pi, Ti=Ti, LDh=0.1/D)
+    #df["qchf_Weis"][i] = WeisIles(P=P, T=T, dTsub=dTsub, G=G, Dh=D)
+    df["qchf_Katto"][i] = Katto90(P=P, T=T, dTsub=dTsub, G=G, Dh=D)
 print(df)
 
 #=======================================================================================#
