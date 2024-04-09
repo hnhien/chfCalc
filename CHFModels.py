@@ -113,7 +113,7 @@ def W3(P=None, T=None, dTsub=None, G=None, D=None, Pi=None, Ti=None, xe=None, LD
     Weisman and Ileslamlou model
 """            
 def WeisIles(P=None, T=None, dTsub=None, G=None, xe=None, L=None, Dh=None, Ph=None):
-    # Satutated state
+    # Liquid in bubbly layer is assumed saturated
     sliq, sstm, liq, T, dTsub, hfg, x2 = States(P=P, T=T, dTsub=dTsub)
     # Eqn 18 multiplier
     f18 = (sliq.h * (1.0 - x2) + sstm.h * x2 - liq.h) * 1.0e3
